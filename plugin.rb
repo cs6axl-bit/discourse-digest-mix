@@ -18,15 +18,28 @@ after_initialize do
 
   # ----------------------------------------------------------------
   # Hook into Topic.for_digest
+  #
+  # Uses a unique alias name (for_digest_before_mix) so this plugin
+  # can coexist with discourse-promo-digest-injector when both are
+  # installed. The call chain becomes:
+  #   for_digest (this plugin) → for_digest_before_mix (old plugin or
+  #   Discourse original) → Discourse original
+  #
+  # To switch active plugin:
+  #   - Use new plugin: digest_mix_enabled = true,
+  #                     promo_digest_injector_enabled = false
+  #   - Use old plugin: digest_mix_enabled = false,
+  #                     promo_digest_injector_enabled = true
+  # No rebuild required — just flip the settings.
   # ----------------------------------------------------------------
   require_dependency "topic"
 
   class ::Topic
     class << self
-      alias_method :for_digest_original, :for_digest
+      alias_method :for_digest_before_mix, :for_digest
 
       def for_digest(user, since, opts = {})
-        base_proc = -> { for_digest_original(user, since, opts) }
+        base_proc = -> { for_digest_before_mix(user, since, opts) }
         DigestMix::Engine.process(user, since, opts, &base_proc)
       end
     end
