@@ -133,7 +133,7 @@ export default class AdminPluginsDigestMixController extends Controller {
     this.saving = true;
     this.saveSuccess = false;
     try {
-      await ajax("/digest-mix/settings", {
+      await ajax("/admin/digest-mix/settings.json", {
         type: "POST",
         data: this.settings,
       });
