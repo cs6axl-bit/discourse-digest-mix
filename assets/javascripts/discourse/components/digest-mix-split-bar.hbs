@@ -1,0 +1,32 @@
+{{! Proportional bar }}
+<div class="dmix-split-bar">
+  {{#each this.normalizedSegments as |seg|}}
+    <div
+      class="dmix-split-segment"
+      style="width: {{seg.percent}}%; background: {{seg.color}};"
+      title="{{seg.label}}: {{seg.percent}}%"
+    >
+      {{#if (gt seg.percent 8)}}
+        <span class="dmix-segment-label">{{seg.label}}<br>{{seg.percent}}%</span>
+      {{/if}}
+    </div>
+  {{/each}}
+</div>
+
+{{! Editable inputs per key }}
+<div class="dmix-split-inputs">
+  {{#each this.normalizedSegments as |seg|}}
+    <div class="dmix-split-input-row">
+      <span class="dmix-input-label" style="color: {{seg.color}};">{{seg.label}}</span>
+      <input
+        type="number"
+        min="0"
+        step="1"
+        value={{seg.value}}
+        class="dmix-split-number"
+        {{on "input" (fn this.onInput seg.key)}}
+      />
+      <span class="dmix-input-pct">= {{seg.percent}}%</span>
+    </div>
+  {{/each}}
+</div>

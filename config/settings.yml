@@ -1,0 +1,155 @@
+plugins:
+  digest_mix_enabled:
+    default: false
+    client: false
+
+  digest_mix_endpoint_url:
+    default: ""
+    client: false
+
+  digest_mix_secret_header:
+    default: ""
+    client: false
+
+  digest_mix_http_timeout:
+    default: 5
+    min: 1
+    max: 30
+    client: false
+
+  # --- Splits (JSON, managed via admin UI) ---
+  digest_mix_email_type_split:
+    default: '{"regular":70,"push":20,"auto_campaign":10}'
+    client: false
+
+  digest_mix_topic_type_split:
+    default: '{"hardsale":30,"superpromo":40,"masterpromo":20,"promofocused":10}'
+    client: false
+
+  digest_mix_first_topic_split:
+    default: '{"hardsale":50,"superpromo":30,"masterpromo":20}'
+    client: false
+
+  digest_mix_first_topic_split_enabled:
+    default: true
+    client: false
+
+  digest_mix_topic_type_registry:
+    default: '[{"id":"hardsale","label":"Hardsale","tags":["hardsale"],"color":"#d45a5a"},{"id":"superpromo","label":"Superpromo","tags":["superpromo"],"color":"#9a60d4"},{"id":"masterpromo","label":"Master Promo","tags":["masterpromo"],"color":"#4d8cff"},{"id":"promofocused","label":"Promo Focused","tags":["promofocused"],"color":"#4ecf7a"}]'
+    client: false
+
+  # --- Slot allocation ---
+  digest_mix_promo_slot_count:
+    default: 2
+    min: 1
+    max: 10
+    client: false
+
+  digest_mix_replace_within_top_n:
+    default: 5
+    min: 1
+    max: 20
+    client: false
+
+  # --- Freshness (JSON, managed via admin UI) ---
+  digest_mix_freshness_config:
+    default: '{"hardsale":{"max_age_days":30,"require_after_last_digest":true},"superpromo":{"max_age_days":0,"require_after_last_digest":true},"masterpromo":{"max_age_days":60,"require_after_last_digest":false},"promofocused":{"max_age_days":0,"require_after_last_digest":false}}'
+    client: false
+
+  # --- Product weights (JSON, managed via admin UI) ---
+  digest_mix_product_weights:
+    default: '{}'
+    client: false
+
+  # --- Cooldowns: regular digest ---
+  digest_mix_regular_product_cooldown_sends:
+    default: 3
+    min: 0
+    max: 50
+    client: false
+
+  digest_mix_regular_type_cooldown_sends:
+    default: 2
+    min: 0
+    max: 20
+    client: false
+
+  digest_mix_regular_topic_dedup_sends:
+    default: 10
+    min: 0
+    max: 100
+    client: false
+
+  # --- Cooldowns: push ---
+  digest_mix_push_cooldown_sends:
+    default: 3
+    min: 0
+    max: 50
+    client: false
+
+  digest_mix_push_product_cooldown_sends:
+    default: 3
+    min: 0
+    max: 50
+    client: false
+
+  digest_mix_push_topic_dedup_sends:
+    default: 10
+    min: 0
+    max: 100
+    client: false
+
+  # --- Cooldowns: auto-campaign ---
+  digest_mix_auto_campaign_cooldown_sends:
+    default: 2
+    min: 0
+    max: 50
+    client: false
+
+  digest_mix_auto_campaign_product_cooldown_sends:
+    default: 3
+    min: 0
+    max: 50
+    client: false
+
+  digest_mix_auto_campaign_topic_dedup_sends:
+    default: 10
+    min: 0
+    max: 100
+    client: false
+
+  # --- Product data source ---
+  digest_mix_product_source:
+    default: "external_mysql"
+    client: false
+
+  digest_mix_mysql_host:
+    default: ""
+    client: false
+
+  digest_mix_mysql_port:
+    default: 3306
+    min: 1
+    max: 65535
+    client: false
+
+  digest_mix_mysql_db:
+    default: ""
+    client: false
+
+  digest_mix_mysql_user:
+    default: ""
+    client: false
+
+  digest_mix_mysql_password:
+    default: ""
+    client: false
+
+  # --- Campaign launcher ---
+  digest_mix_campaign_endpoint_url:
+    default: ""
+    client: false
+
+  digest_mix_campaign_secret:
+    default: ""
+    client: false

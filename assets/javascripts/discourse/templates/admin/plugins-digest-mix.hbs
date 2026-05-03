@@ -1,0 +1,304 @@
+<div class="admin-plugin-outlet admin-digest-mix">
+  <h2>Digest Mix</h2>
+
+  {{! Tab bar }}
+  <div class="dmix-tabs">
+    {{#each this.tabs as |tab|}}
+      <button
+        class="dmix-tab {{if (eq this.activeTab tab.id) "active"}}"
+        {{on "click" (fn this.selectTab tab.id)}}
+      >
+        {{tab.label}}
+      </button>
+    {{/each}}
+  </div>
+
+  <div class="dmix-tab-content">
+
+    {{!-- ============================================================
+         TAB 1: Email Mix
+    ============================================================ --}}
+    {{#if (eq this.activeTab "emailMix")}}
+      <h3>Email Type Mix</h3>
+      <p class="dmix-hint">
+        Controls what percentage of digest sends become regular digests, pushes, or auto-campaigns.
+        Values are relative weights — they auto-normalize to 100%.
+      </p>
+      <DigestMixSplitBar
+        @split={{this.emailTypeSplit}}
+        @colors={{hash regular="#4d8cff" push="#d45a5a" auto_campaign="#d45a9a"}}
+        @labels={{hash regular="Regular" push="Push" auto_campaign="Campaign"}}
+        @onChange={{this.updateEmailTypeSplit}}
+      />
+    {{/if}}
+
+    {{!-- ============================================================
+         TAB 2: Content Mix
+    ============================================================ --}}
+    {{#if (eq this.activeTab "contentMix")}}
+      <h3>Content Mix</h3>
+
+      <div class="dmix-field-row">
+        <label>Promo slots per digest</label>
+        <input
+          type="number" min="1" max="10"
+          value={{this.settings.digest_mix_promo_slot_count}}
+          {{on "input" (fn (mut this.settings.digest_mix_promo_slot_count) value="target.value")}}
+        />
+      </div>
+
+      <div class="dmix-field-row">
+        <label>Replace within top N positions</label>
+        <input
+          type="number" min="1" max="20"
+          value={{this.settings.digest_mix_replace_within_top_n}}
+          {{on "input" (fn (mut this.settings.digest_mix_replace_within_top_n) value="target.value")}}
+        />
+      </div>
+
+      <h4>Topic type allocation (all slots except first)</h4>
+      <p class="dmix-hint">
+        Weights are relative. Types with higher weight get more slots.
+        Type-level cooldowns reduce weights automatically.
+      </p>
+      <DigestMixSplitBar
+        @split={{this.topicTypeSplit}}
+        @onChange={{this.updateTopicTypeSplit}}
+      />
+    {{/if}}
+
+    {{!-- ============================================================
+         TAB 3: First Topic
+    ============================================================ --}}
+    {{#if (eq this.activeTab "firstTopic")}}
+      <h3>First Topic Allocation</h3>
+
+      <div class="dmix-field-row">
+        <label>Use separate split for position 0</label>
+        <Input @type="checkbox" @checked={{this.settings.digest_mix_first_topic_split_enabled}} />
+      </div>
+
+      {{#if this.settings.digest_mix_first_topic_split_enabled}}
+        <p class="dmix-hint">
+          Controls which topic type appears at position 0 (first topic in digest / push topic).
+        </p>
+        <DigestMixSplitBar
+          @split={{this.firstTopicSplit}}
+          @onChange={{this.updateFirstTopicSplit}}
+        />
+      {{else}}
+        <p class="dmix-hint">First topic uses the same split as Content Mix.</p>
+      {{/if}}
+    {{/if}}
+
+    {{!-- ============================================================
+         TAB 4: Freshness
+    ============================================================ --}}
+    {{#if (eq this.activeTab "freshness")}}
+      <h3>Topic Freshness</h3>
+      <p class="dmix-hint">
+        Per topic type: how fresh injected topics must be.
+        "After last digest" means topics must have been created after this user's last email.
+      </p>
+
+      <table class="dmix-freshness-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Max age (days, 0 = no limit)</th>
+            <th>Must be newer than last digest</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each this.registry as |typeEntry|}}
+            <tr>
+              <td><strong>{{typeEntry.label}}</strong></td>
+              <td>
+                <input
+                  type="number" min="0" max="365"
+                  value={{(get (get this.freshnessConfig typeEntry.id) "max_age_days")}}
+                  {{on "input" (fn this.updateFreshnessConfig typeEntry.id "max_age_days" value="target.value")}}
+                />
+              </td>
+              <td>
+                <Input
+                  @type="checkbox"
+                  @checked={{(get (get this.freshnessConfig typeEntry.id) "require_after_last_digest")}}
+                  {{on "change" (fn this.updateFreshnessConfig typeEntry.id "require_after_last_digest" value="target.checked")}}
+                />
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{/if}}
+
+    {{!-- ============================================================
+         TAB 5: Cooldowns
+    ============================================================ --}}
+    {{#if (eq this.activeTab "cooldowns")}}
+      <h3>Cooldowns</h3>
+      <p class="dmix-hint">
+        All values are <strong>send counts</strong>, not days.
+        "3 sends" means 3 emails of that channel must pass before the same product/topic can repeat.
+        0 = never repeat (permanent dedup) for topic dedup; 0 = no cooldown for others.
+      </p>
+
+      <table class="dmix-cooldown-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Regular Digest</th>
+            <th>Push</th>
+            <th>Auto-Campaign</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Channel cooldown</strong><br><small>N emails must pass before this type fires again</small></td>
+            <td>—</td>
+            <td>
+              <input type="number" min="0"
+                value={{this.settings.digest_mix_push_cooldown_sends}}
+                {{on "input" (fn (mut this.settings.digest_mix_push_cooldown_sends) value="target.value")}}
+              />
+            </td>
+            <td>
+              <input type="number" min="0"
+                value={{this.settings.digest_mix_auto_campaign_cooldown_sends}}
+                {{on "input" (fn (mut this.settings.digest_mix_auto_campaign_cooldown_sends) value="target.value")}}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Product cooldown</strong><br><small>Same product blocked for next N sends on this channel</small></td>
+            <td>
+              <input type="number" min="0"
+                value={{this.settings.digest_mix_regular_product_cooldown_sends}}
+                {{on "input" (fn (mut this.settings.digest_mix_regular_product_cooldown_sends) value="target.value")}}
+              />
+            </td>
+            <td>
+              <input type="number" min="0"
+                value={{this.settings.digest_mix_push_product_cooldown_sends}}
+                {{on "input" (fn (mut this.settings.digest_mix_push_product_cooldown_sends) value="target.value")}}
+              />
+            </td>
+            <td>
+              <input type="number" min="0"
+                value={{this.settings.digest_mix_auto_campaign_product_cooldown_sends}}
+                {{on "input" (fn (mut this.settings.digest_mix_auto_campaign_product_cooldown_sends) value="target.value")}}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Topic dedup</strong><br><small>Same topic_id not again for N sends (0 = never repeat)</small></td>
+            <td>
+              <input type="number" min="0"
+                value={{this.settings.digest_mix_regular_topic_dedup_sends}}
+                {{on "input" (fn (mut this.settings.digest_mix_regular_topic_dedup_sends) value="target.value")}}
+              />
+            </td>
+            <td>
+              <input type="number" min="0"
+                value={{this.settings.digest_mix_push_topic_dedup_sends}}
+                {{on "input" (fn (mut this.settings.digest_mix_push_topic_dedup_sends) value="target.value")}}
+              />
+            </td>
+            <td>
+              <input type="number" min="0"
+                value={{this.settings.digest_mix_auto_campaign_topic_dedup_sends}}
+                {{on "input" (fn (mut this.settings.digest_mix_auto_campaign_topic_dedup_sends) value="target.value")}}
+              />
+            </td>
+          </tr>
+          <tr>
+            <td><strong>Type cooldown</strong><br><small>Soft weight reduction if same type appeared in last N regular digests</small></td>
+            <td>
+              <input type="number" min="0"
+                value={{this.settings.digest_mix_regular_type_cooldown_sends}}
+                {{on "input" (fn (mut this.settings.digest_mix_regular_type_cooldown_sends) value="target.value")}}
+              />
+            </td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    {{/if}}
+
+    {{!-- ============================================================
+         TAB 6: Product Weights
+    ============================================================ --}}
+    {{#if (eq this.activeTab "productWeights")}}
+      <h3>Product Weights</h3>
+      <p class="dmix-hint">
+        Control how much each product is promoted within each topic type.
+        Weights are relative — boost a well-performing product to increase its share.
+        Pause any product to stop it from being injected without losing its weight.
+      </p>
+
+      {{#each this.registry as |typeEntry|}}
+        <DigestMixProductWeights
+          @typeId={{typeEntry.id}}
+          @typeLabel={{typeEntry.label}}
+          @typeColor={{typeEntry.color}}
+          @activeProducts={{this.activeProducts}}
+          @weights={{(get this.productWeights typeEntry.id)}}
+          @onUpdate={{this.updateProductWeight}}
+          @onBoost={{this.boostProduct}}
+          @onPause={{this.pauseProduct}}
+        />
+      {{/each}}
+    {{/if}}
+
+    {{!-- ============================================================
+         TAB 7: Topic Types
+    ============================================================ --}}
+    {{#if (eq this.activeTab "topicTypes")}}
+      <h3>Topic Type Registry</h3>
+      <p class="dmix-hint">
+        Define which Discourse tags map to which topic types.
+        Tags are pipe-separated if multiple tags map to one type.
+      </p>
+
+      <table class="dmix-registry-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Label</th>
+            <th>Tags (comma-separated)</th>
+            <th>Color</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each this.registry as |typeEntry index|}}
+            <tr>
+              <td><input type="text" value={{typeEntry.id}} readonly class="dmix-id-input" /></td>
+              <td><input type="text" value={{typeEntry.label}} /></td>
+              <td><input type="text" value={{(join typeEntry.tags ", ")}} /></td>
+              <td><input type="color" value={{typeEntry.color}} /></td>
+              <td><button class="btn btn-danger btn-small">Remove</button></td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    {{/if}}
+
+  </div>{{! end dmix-tab-content }}
+
+  {{! Save bar }}
+  <div class="dmix-save-bar">
+    {{#if this.saveSuccess}}
+      <span class="dmix-save-ok">✓ Saved</span>
+    {{/if}}
+    <button
+      class="btn btn-primary"
+      {{on "click" this.save}}
+      disabled={{this.saving}}
+    >
+      {{if this.saving "Saving…" "Save Settings"}}
+    </button>
+  </div>
+</div>

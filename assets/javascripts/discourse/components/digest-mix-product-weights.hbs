@@ -1,0 +1,56 @@
+<div class="dmix-product-type-section">
+  <div class="dmix-type-header" {{on "click" this.toggleExpanded}}>
+    <span class="dmix-type-dot" style="background: {{@typeColor}};"></span>
+    <strong>{{@typeLabel}}</strong>
+    <span class="dmix-expand-icon">{{if this.expanded "▲" "▼"}}</span>
+  </div>
+
+  {{#if this.expanded}}
+    {{! Proportional bar }}
+    <div class="dmix-product-bar">
+      {{#each this.productsWithWeights as |p|}}
+        {{#unless p.paused}}
+          <div
+            class="dmix-product-segment"
+            style="width: {{p.percent}}%; background: {{@typeColor}}; opacity: {{if p.paused 0.3 0.8}};"
+            title="{{p.name}}: {{p.percent}}%"
+          ></div>
+        {{/unless}}
+      {{/each}}
+    </div>
+
+    {{! Per-product rows }}
+    <div class="dmix-product-rows">
+      {{#each this.productsWithWeights as |p|}}
+        <div class="dmix-product-row {{if p.paused "is-paused"}}">
+          <span class="dmix-product-name">{{p.name}}</span>
+          <input
+            type="range"
+            min="0"
+            max="10"
+            step="0.5"
+            value={{p.weight}}
+            class="dmix-weight-slider"
+            {{on "input" (fn this.onWeightInput p.name)}}
+          />
+          <input
+            type="number"
+            min="0"
+            max="10"
+            step="0.5"
+            value={{p.weight}}
+            class="dmix-weight-number"
+            {{on "input" (fn this.onWeightInput p.name)}}
+          />
+          <span class="dmix-weight-pct">{{p.percent}}%</span>
+          <button class="btn btn-small dmix-boost-btn" {{on "click" (fn this.boost p.name)}}>
+            Boost ×2
+          </button>
+          <button class="btn btn-small btn-danger dmix-pause-btn" {{on "click" (fn this.pause p.name)}}>
+            {{if p.paused "Paused" "Pause"}}
+          </button>
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+</div>
